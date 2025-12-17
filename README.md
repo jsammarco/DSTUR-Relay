@@ -2,6 +2,9 @@
 
 Cross-platform command line relay control tool for managing USB relay boards (tested with DSTUR-T20; also expected to work with DSTUR-T10, but not boards with more than two relays).
 
+=======
+![DSTUR USB relay board](https://wiki.diustou.com/en/w/upload/0/08/USB_Relay_%28TC%2C_8%2C_Opto%29_%E4%BA%A7%E5%93%811.png)
+
 ## Usage
 
 `relay.py` is a CLI that can list available serial ports, toggle both relays on/off, pulse both relays for a set duration, and query relay status.
@@ -21,7 +24,7 @@ python relay.py [--port PORT] [--baud BAUD] [--timeout SECONDS] <command> [comma
 | Command | Arguments | Description |
 | --- | --- | --- |
 | `list-ports` | _none_ | List all detected serial ports. |
-| `all` | `state` (`on` \| `off` \| `pulse`), `--seconds` (optional; default `3.0`) | Control both relays together: turn on, turn off, or pulse for the specified number of seconds. |
+| `all` | `state` (`on` \| `off` \| `pulse`), `--seconds` (optional; default `3.0`) | Control both relays together: turn on, turn off, or pulse for the specified number of seconds. When using `pulse`, `--seconds` defines how long the relays stay on before automatically turning off. |
 | `status` | `target` (`1` \| `2` \| `all`), `--raw` (optional) | Query status for relay 1, relay 2, or both. `--raw` prints the raw hex response before decoding. |
 
 ### Examples
@@ -59,5 +62,5 @@ python relay.py status 1 --raw
 ## Device compatibility
 
 - Designed and tested with the DSTUR-T20 two-relay USB board.
-- Should also work with DSTUR-T10 (also two relays).
+- Expected to work with the DSTUR-T10 single-relay board (commands that target relay 2 will have no effect).
 - Boards with more than two relays are **not** currently supported; extending support to larger USB relay boards would be future work.
