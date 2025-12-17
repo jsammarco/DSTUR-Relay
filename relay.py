@@ -75,6 +75,18 @@ def pulse_all_relays(com_port, baud, seconds, timeout):
     send_all_relays(com_port, baud, "off", timeout)
 
 
+def send_one_relay(com_port, baud, relay_num, state, timeout):
+    if relay_num not in CMD["relay"]:
+        raise RuntimeError("Unsupported relay number: {0}".format(relay_num))
+    _transact(com_port, baud, CMD["relay"][relay_num][state], timeout, read_response=False)
+
+
+def pulse_one_relay(com_port, baud, relay_num, seconds, timeout):
+    send_one_relay(com_port, baud, relay_num, "on", timeout)
+    time.sleep(seconds)
+    send_one_relay(com_port, baud, relay_num, "off", timeout)
+
+
 def decode_status_ascii(response):
     """
     Device returns ASCII like:
@@ -105,6 +117,12 @@ def parse_args(argv=None):
     p_all.add_argument("state", choices=["on", "off", "pulse"])
     p_all.add_argument("--seconds", type=float, default=3.0)
 
+    # NEW: control one relay
+    p_relay = sub.add_parser("relay", help="Control a single relay")
+    p_relay.add_argument("number", choices=["1", "2"], help="Relay number")
+    p_relay.add_argument("state", choices=["on", "off", "pulse"], help="Desired state")
+    p_relay.add_argument("--seconds", type=float, default=1.0, help="Pulse duration (seconds)")
+
     p_status = sub.add_parser("status")
     p_status.add_argument("target", choices=["1", "2", "all"])
     p_status.add_argument("--raw", action="store_true")
@@ -132,6 +150,19 @@ def main(argv=None):
 
             pulse_all_relays(com_port, g.baud, c.seconds, g.timeout)
             print("OK: all relays pulse {0}s ({1})".format(c.seconds, com_port))
+            return 0
+
+        # NEW: single relay command handling
+        if c.command == "relay":
+            relay_num = int(c.number)
+
+            if c.state in ("on", "off"):
+                send_one_relay(com_port, g.baud, relay_num, c.state, g.timeout)
+                print("OK: relay{0} {1} ({2})".format(relay_num, c.state, com_port))
+                return 0
+
+            pulse_one_relay(com_port, g.baud, relay_num, c.seconds, g.timeout)
+            print("OK: relay{0} pulse {1}s ({2})".format(relay_num, c.seconds, com_port))
             return 0
 
         if c.command == "status":
