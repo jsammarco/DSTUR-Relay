@@ -5,6 +5,7 @@ __pycache__/
 
 relay_linux_arm/
 relay_linux_x86/
+relay_win_32/
 venv/
 output/
 
