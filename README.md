@@ -6,7 +6,7 @@ Cross-platform command line relay control tool for managing USB relay boards (te
 
 ## Usage
 
-`relay.py` is a CLI that can list available serial ports, toggle both relays on/off, pulse both relays for a set duration, and query relay status.
+`relay.py` is a CLI that can list available serial ports, toggle both relays together, control an individual relay, pulse relays for a set duration, and query relay status.
 
 ```bash
 python relay.py [--port PORT] [--baud BAUD] [--timeout SECONDS] <command> [command options]
@@ -24,6 +24,7 @@ python relay.py [--port PORT] [--baud BAUD] [--timeout SECONDS] <command> [comma
 | --- | --- | --- |
 | `list-ports` | _none_ | List all detected serial ports. |
 | `all` | `state` (`on` \| `off` \| `pulse`), `--seconds` (optional; default `3.0`) | Control both relays together: turn on, turn off, or pulse for the specified number of seconds. When using `pulse`, `--seconds` defines how long the relays stay on before automatically turning off. |
+| `relay` | `number` (`1` \| `2`), `state` (`on` \| `off` \| `pulse`), `--seconds` (optional; default `1.0`) | Control a single relay: turn on, turn off, or pulse for the specified number of seconds. `--seconds` only applies to `pulse`. |
 | `status` | `target` (`1` \| `2` \| `all`), `--raw` (optional) | Query status for relay 1, relay 2, or both. `--raw` prints the raw hex response before decoding. |
 
 ### Examples
@@ -44,6 +45,18 @@ Pulse both relays for 5 seconds on a specific port:
 
 ```bash
 python relay.py --port COM3 all pulse --seconds 5
+```
+
+Turn on relay 1 only:
+
+```bash
+python relay.py relay 1 on
+```
+
+Pulse relay 2 for 2 seconds:
+
+```bash
+python relay.py relay 2 pulse --seconds 2
 ```
 
 Check status for both relays (decoded output) on a custom baud rate:
