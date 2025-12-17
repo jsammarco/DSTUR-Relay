@@ -3,6 +3,11 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+relay_linux_arm/
+relay_linux_x86/
+venv/
+output/
+
 # C extensions
 *.so
 
