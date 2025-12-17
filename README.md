@@ -2,7 +2,6 @@
 
 Cross-platform command line relay control tool for managing USB relay boards (tested with DSTUR-T20; also expected to work with DSTUR-T10, but not boards with more than two relays).
 
-=======
 ![DSTUR USB relay board](https://wiki.diustou.com/en/w/upload/0/08/USB_Relay_%28TC%2C_8%2C_Opto%29_%E4%BA%A7%E5%93%811.png)
 
 ## Usage
