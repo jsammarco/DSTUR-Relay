@@ -42,6 +42,54 @@ def get_available_serial_ports():
     return [p.device for p in list_ports.comports()]
 
 
+def _format_port_value(value, empty_placeholder="-"):
+    if value is None:
+        return empty_placeholder
+    value = str(value).strip()
+    return value if value else empty_placeholder
+
+
+def _format_vid_pid(value):
+    if value is None:
+        return "-"
+    return "0x{0:04X}".format(value)
+
+
+def format_ports_table(ports):
+    headers = ["Port", "VID", "PID", "Manufacturer", "Model", "HWID", "Parent", "Address"]
+    rows = []
+    for port in ports:
+        model = port.product or port.description
+        parent = getattr(port, "usb_device_path", None) or getattr(port, "parent", None)
+        address = getattr(port, "location", None) or getattr(port, "interface", None)
+        rows.append(
+            [
+                _format_port_value(port.device),
+                _format_vid_pid(port.vid),
+                _format_vid_pid(port.pid),
+                _format_port_value(port.manufacturer),
+                _format_port_value(model),
+                _format_port_value(port.hwid),
+                _format_port_value(parent),
+                _format_port_value(address),
+            ]
+        )
+
+    widths = [len(header) for header in headers]
+    for row in rows:
+        for idx, cell in enumerate(row):
+            widths[idx] = max(widths[idx], len(cell))
+
+    lines = []
+    header_line = " | ".join(header.ljust(widths[idx]) for idx, header in enumerate(headers))
+    divider = "-+-".join("-" * width for width in widths)
+    lines.append(header_line)
+    lines.append(divider)
+    for row in rows:
+        lines.append(" | ".join(cell.ljust(widths[idx]) for idx, cell in enumerate(row)))
+    return "\n".join(lines)
+
+
 def resolve_com_port(requested_port):
     if requested_port:
         return requested_port
@@ -124,7 +172,8 @@ def parse_args(argv=None):
     parser = argparse.ArgumentParser(description="USB Relay CLI")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    sub.add_parser("list-ports")
+    p_list = sub.add_parser("list-ports")
+    p_list.add_argument("--detailed", action="store_true", help="Show detailed port info")
 
     p_all = sub.add_parser("all")
     p_all.add_argument("state", choices=["on", "off", "pulse"])
@@ -149,8 +198,12 @@ def main(argv=None):
         g, c = parse_args(argv)
 
         if c.command == "list-ports":
-            for p in get_available_serial_ports():
-                print(p)
+            ports = list_ports.comports()
+            if c.detailed:
+                print(format_ports_table(ports))
+            else:
+                for p in ports:
+                    print(p.device)
             return 0
 
         com_port = resolve_com_port(g.port)

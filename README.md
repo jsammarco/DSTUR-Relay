@@ -22,7 +22,7 @@ python relay.py [--port PORT] [--baud BAUD] [--timeout SECONDS] <command> [comma
 
 | Command | Arguments | Description |
 | --- | --- | --- |
-| `list-ports` | _none_ | List all detected serial ports. |
+| `list-ports` | `--detailed` (optional) | List all detected serial ports. Use `--detailed` to show a table with USB details. |
 | `all` | `state` (`on` \| `off` \| `pulse`), `--seconds` (optional; default `3.0`) | Control both relays together: turn on, turn off, or pulse for the specified number of seconds. When using `pulse`, `--seconds` defines how long the relays stay on before automatically turning off. |
 | `relay` | `number` (`1` \| `2` \| `3` \| `4` \| `5` \| `6` \| `7` \| `8`), `state` (`on` \| `off` \| `pulse`), `--seconds` (optional; default `1.0`) | Control a single relay: turn on, turn off, or pulse for the specified number of seconds. `--seconds` only applies to `pulse`. |
 | `status` | `target` (`1` \| `2` \| `3` \| `4` \| `5` \| `6` \| `7` \| `8` \| `all`), `--raw` (optional) | Query status for a single relay or all relays. `--raw` prints the raw hex response before decoding. |
@@ -33,6 +33,12 @@ List available ports:
 
 ```bash
 python relay.py list-ports
+```
+
+List ports with detailed USB info:
+
+```bash
+python relay.py list-ports --detailed
 ```
 
 Turn on both relays using the first detected port:
