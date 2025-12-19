@@ -26,6 +26,7 @@ python relay.py [--port PORT] [--baud BAUD] [--timeout SECONDS] <command> [comma
 | `all` | `state` (`on` \| `off` \| `pulse`), `--seconds` (optional; default `3.0`) | Control both relays together: turn on, turn off, or pulse for the specified number of seconds. When using `pulse`, `--seconds` defines how long the relays stay on before automatically turning off. |
 | `relay` | `number` (`1` \| `2` \| `3` \| `4` \| `5` \| `6` \| `7` \| `8`), `state` (`on` \| `off` \| `pulse`), `--seconds` (optional; default `1.0`) | Control a single relay: turn on, turn off, or pulse for the specified number of seconds. `--seconds` only applies to `pulse`. |
 | `status` | `target` (`1` \| `2` \| `3` \| `4` \| `5` \| `6` \| `7` \| `8` \| `all`), `--raw` (optional) | Query status for a single relay or all relays. `--raw` prints the raw hex response before decoding. |
+| `raw` | `bytes` (hex byte sequence), `--raw` (optional) | Send raw hex bytes and read a response. By default, prints any ASCII response; use `--raw` to print the raw hex response. |
 
 ### Examples
 
@@ -95,6 +96,18 @@ Show raw status response for relay 1:
 
 ```bash
 python relay.py status 1 --raw
+```
+
+Send a raw hex command and print the ASCII response:
+
+```bash
+python relay.py raw A0 01 00 A1
+```
+
+Send a raw hex command and print the raw response bytes:
+
+```bash
+python relay.py raw A0 0F 02 A1 --raw
 ```
 
 ## Device compatibility

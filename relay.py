@@ -192,6 +192,30 @@ def decode_status_ascii(response):
     return {"ch{0}".format(ch): (1 if v == "ON" else 0) for ch, v in matches}
 
 
+def parse_hex_bytes(tokens):
+    if not tokens:
+        raise RuntimeError("No hex bytes provided.")
+    raw = " ".join(tokens).replace(",", " ").strip()
+    if not raw:
+        raise RuntimeError("No hex bytes provided.")
+    chunks = [chunk for chunk in raw.split() if chunk]
+    data = []
+    for chunk in chunks:
+        if chunk.lower().startswith("0x"):
+            chunk = chunk[2:]
+        if not chunk:
+            continue
+        if not re.fullmatch(r"[0-9a-fA-F]+", chunk):
+            raise RuntimeError("Invalid hex byte sequence: '{0}'".format(chunk))
+        if len(chunk) % 2 != 0:
+            raise RuntimeError("Hex byte sequence must have even length: '{0}'".format(chunk))
+        for idx in range(0, len(chunk), 2):
+            data.append(int(chunk[idx : idx + 2], 16))
+    if not data:
+        raise RuntimeError("No hex bytes provided.")
+    return bytes(data)
+
+
 def parse_args(argv=None):
     # Global options parser: parsed first; ignores unknowns
     global_parser = argparse.ArgumentParser(add_help=False)
@@ -223,6 +247,14 @@ def parse_args(argv=None):
     p_status = sub.add_parser("status")
     p_status.add_argument("target", choices=RELAY_CHOICES + ["all"])
     p_status.add_argument("--raw", action="store_true")
+
+    p_raw = sub.add_parser("raw", help="Send raw hex bytes and read a response")
+    p_raw.add_argument(
+        "bytes",
+        nargs="+",
+        help="Hex bytes to send (e.g. A0 01 00 A1 or 0xA0,0x01)",
+    )
+    p_raw.add_argument("--raw", action="store_true", help="Print response as raw hex bytes")
 
     cmd_ns = parser.parse_args(remaining)
     return globals_ns, cmd_ns
@@ -295,6 +327,18 @@ def main(argv=None):
             else:
                 relay_num = int(c.target)
                 print("relay{0}={1}".format(relay_num, decoded.get("ch{0}".format(relay_num))))
+            return 0
+
+        if c.command == "raw":
+            payload = parse_hex_bytes(c.bytes)
+            resp = _transact(com_port, g.baud, payload, g.timeout, read_response=True)
+            if c.raw:
+                print("RAW:", resp.hex())
+            else:
+                if resp:
+                    print(resp.decode("ascii", errors="replace"))
+                else:
+                    print("No response")
             return 0
 
         return 2
