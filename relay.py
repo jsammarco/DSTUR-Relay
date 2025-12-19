@@ -7,6 +7,7 @@ from serial.tools import list_ports
 
 
 DEFAULT_BAUD_RATE = 9600
+RELAY_CHOICES = [str(i) for i in range(1, 9)]
 
 CMD = {
     "relay": {},
@@ -131,12 +132,12 @@ def parse_args(argv=None):
 
     # NEW: control one relay
     p_relay = sub.add_parser("relay", help="Control a single relay")
-    p_relay.add_argument("number", choices=[str(i) for i in range(1, 9)], help="Relay number")
+    p_relay.add_argument("number", choices=RELAY_CHOICES, help="Relay number")
     p_relay.add_argument("state", choices=["on", "off", "pulse"], help="Desired state")
     p_relay.add_argument("--seconds", type=float, default=1.0, help="Pulse duration (seconds)")
 
     p_status = sub.add_parser("status")
-    p_status.add_argument("target", choices=[str(i) for i in range(1, 9)] + ["all"])
+    p_status.add_argument("target", choices=RELAY_CHOICES + ["all"])
     p_status.add_argument("--raw", action="store_true")
 
     cmd_ns = parser.parse_args(remaining)
