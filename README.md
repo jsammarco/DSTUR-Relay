@@ -1,6 +1,6 @@
 # DSTUR-Relay
 
-Cross-platform command line relay control tool for managing USB relay boards (tested with DSTUR-T20; also expected to work with DSTUR-T10, but not boards with more than two relays).
+Cross-platform command line relay control tool for managing USB relay boards (tested with DSTUR-T20; also expected to work with DSTUR-T10 and up to 8-relay boards).
 
 ![DSTUR USB relay board](https://wiki.diustou.com/en/w/upload/0/08/USB_Relay_%28TC%2C_8%2C_Opto%29_%E4%BA%A7%E5%93%811.png)
 
@@ -24,8 +24,8 @@ python relay.py [--port PORT] [--baud BAUD] [--timeout SECONDS] <command> [comma
 | --- | --- | --- |
 | `list-ports` | _none_ | List all detected serial ports. |
 | `all` | `state` (`on` \| `off` \| `pulse`), `--seconds` (optional; default `3.0`) | Control both relays together: turn on, turn off, or pulse for the specified number of seconds. When using `pulse`, `--seconds` defines how long the relays stay on before automatically turning off. |
-| `relay` | `number` (`1` \| `2`), `state` (`on` \| `off` \| `pulse`), `--seconds` (optional; default `1.0`) | Control a single relay: turn on, turn off, or pulse for the specified number of seconds. `--seconds` only applies to `pulse`. |
-| `status` | `target` (`1` \| `2` \| `all`), `--raw` (optional) | Query status for relay 1, relay 2, or both. `--raw` prints the raw hex response before decoding. |
+| `relay` | `number` (`1` \| `2` \| `3` \| `4` \| `5` \| `6` \| `7` \| `8`), `state` (`on` \| `off` \| `pulse`), `--seconds` (optional; default `1.0`) | Control a single relay: turn on, turn off, or pulse for the specified number of seconds. `--seconds` only applies to `pulse`. |
+| `status` | `target` (`1` \| `2` \| `3` \| `4` \| `5` \| `6` \| `7` \| `8` \| `all`), `--raw` (optional) | Query status for a single relay or all relays. `--raw` prints the raw hex response before decoding. |
 
 ### Examples
 
@@ -59,6 +59,14 @@ Pulse relay 2 for 2 seconds:
 python relay.py relay 2 pulse --seconds 2
 ```
 
+Turn on relays 3–8 one-by-one:
+
+```bash
+for relay in 3 4 5 6 7 8; do
+  python relay.py relay "$relay" on
+done
+```
+
 Check status for both relays (decoded output) on a custom baud rate:
 
 ```bash
@@ -75,4 +83,4 @@ python relay.py status 1 --raw
 
 - Designed and tested with the DSTUR-T20 two-relay USB board.
 - Expected to work with the DSTUR-T10 single-relay board (commands that target relay 2 will have no effect).
-- Boards with more than two relays are **not** currently supported; extending support to larger USB relay boards would be future work.
+- Supports up to 8-relay boards (relays beyond the hardware count will have no effect).
