@@ -9,20 +9,32 @@ from serial.tools import list_ports
 DEFAULT_BAUD_RATE = 9600
 
 CMD = {
-    "relay": {
-        1: {"on": bytes([0xA0, 0x01, 0x01, 0xA2]), "off": bytes([0xA0, 0x01, 0x00, 0xA1])},
-        2: {"on": bytes([0xA0, 0x02, 0x01, 0xA3]), "off": bytes([0xA0, 0x02, 0x00, 0xA2])},
-    },
-    "all": {
-        "on": bytes([0xA0, 0x0F, 0x01, 0xB0]),
-        "off": bytes([0xA0, 0x0F, 0x00, 0xAF]),
-    },
-    "query": {
-        1: bytes([0xA0, 0x01, 0x02, 0xA3]),
-        2: bytes([0xA0, 0x02, 0x02, 0xA4]),
-        "all": bytes([0xA0, 0x0F, 0x02, 0xB1]),
-    },
+    "relay": {},
+    "all": {},
+    "query": {},
 }
+
+
+def build_command_bytes(data1, data2, data3):
+    checksum = (data1 + data2 + data3) & 0xFF
+    return bytes([data1, data2, data3, checksum])
+
+
+CMD["relay"] = {
+    relay_num: {
+        "on": build_command_bytes(0xA0, relay_num, 0x01),
+        "off": build_command_bytes(0xA0, relay_num, 0x00),
+    }
+    for relay_num in range(1, 9)
+}
+CMD["all"] = {
+    "on": build_command_bytes(0xA0, 0x0F, 0x01),
+    "off": build_command_bytes(0xA0, 0x0F, 0x00),
+}
+CMD["query"] = {
+    "all": build_command_bytes(0xA0, 0x0F, 0x02),
+}
+CMD["query"].update({relay_num: build_command_bytes(0xA0, relay_num, 0x02) for relay_num in range(1, 9)})
 
 
 def get_available_serial_ports():
@@ -76,8 +88,8 @@ def pulse_all_relays(com_port, baud, seconds, timeout):
 
 
 def send_one_relay(com_port, baud, relay_num, state, timeout):
-    if relay_num not in CMD["relay"]:
-        raise RuntimeError("Unsupported relay number: {0}".format(relay_num))
+    if relay_num < 1 or relay_num > 8:
+        raise RuntimeError("Relay number must be between 1 and 8; got {0}".format(relay_num))
     _transact(com_port, baud, CMD["relay"][relay_num][state], timeout, read_response=False)
 
 
@@ -119,12 +131,12 @@ def parse_args(argv=None):
 
     # NEW: control one relay
     p_relay = sub.add_parser("relay", help="Control a single relay")
-    p_relay.add_argument("number", choices=["1", "2"], help="Relay number")
+    p_relay.add_argument("number", choices=[str(i) for i in range(1, 9)], help="Relay number")
     p_relay.add_argument("state", choices=["on", "off", "pulse"], help="Desired state")
     p_relay.add_argument("--seconds", type=float, default=1.0, help="Pulse duration (seconds)")
 
     p_status = sub.add_parser("status")
-    p_status.add_argument("target", choices=["1", "2", "all"])
+    p_status.add_argument("target", choices=[str(i) for i in range(1, 9)] + ["all"])
     p_status.add_argument("--raw", action="store_true")
 
     cmd_ns = parser.parse_args(remaining)
@@ -181,12 +193,15 @@ def main(argv=None):
                 print("Unable to decode status")
                 return 1
 
-            if c.target == "1":
-                print("relay1={0}".format(decoded.get("ch1")))
-            elif c.target == "2":
-                print("relay2={0}".format(decoded.get("ch2")))
+            if c.target == "all":
+                statuses = [
+                    "relay{0}={1}".format(relay_num, decoded.get("ch{0}".format(relay_num)))
+                    for relay_num in range(1, 9)
+                ]
+                print(" ".join(statuses))
             else:
-                print("relay1={0} relay2={1}".format(decoded.get("ch1"), decoded.get("ch2")))
+                relay_num = int(c.target)
+                print("relay{0}={1}".format(relay_num, decoded.get("ch{0}".format(relay_num))))
             return 0
 
         return 2
