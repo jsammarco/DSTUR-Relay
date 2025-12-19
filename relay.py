@@ -1,6 +1,9 @@
 import argparse
+import csv
+import json
 import re
 import time
+from io import StringIO
 
 import serial
 from serial.tools import list_ports
@@ -55,6 +58,22 @@ def _format_vid_pid(value):
     return "0x{0:04X}".format(value)
 
 
+def port_to_dict(port):
+    model = port.product or port.description
+    parent = getattr(port, "usb_device_path", None) or getattr(port, "parent", None)
+    address = getattr(port, "location", None) or getattr(port, "interface", None)
+    return {
+        "port": port.device,
+        "vid": port.vid,
+        "pid": port.pid,
+        "manufacturer": port.manufacturer,
+        "model": model,
+        "hwid": port.hwid,
+        "parent": parent,
+        "address": address,
+    }
+
+
 def format_ports_table(ports):
     headers = ["Port", "VID", "PID", "Manufacturer", "Model", "HWID", "Parent", "Address"]
     rows = []
@@ -88,6 +107,23 @@ def format_ports_table(ports):
     for row in rows:
         lines.append(" | ".join(cell.ljust(widths[idx]) for idx, cell in enumerate(row)))
     return "\n".join(lines)
+
+
+def format_ports_csv(ports):
+    output = StringIO()
+    writer = csv.DictWriter(
+        output,
+        fieldnames=["port", "vid", "pid", "manufacturer", "model", "hwid", "parent", "address"],
+    )
+    writer.writeheader()
+    for port in ports:
+        writer.writerow(port_to_dict(port))
+    return output.getvalue().strip()
+
+
+def format_ports_json(ports):
+    payload = [port_to_dict(port) for port in ports]
+    return json.dumps(payload, indent=2)
 
 
 def resolve_com_port(requested_port):
@@ -173,7 +209,10 @@ def parse_args(argv=None):
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_list = sub.add_parser("list-ports")
-    p_list.add_argument("--detailed", action="store_true", help="Show detailed port info")
+    list_group = p_list.add_mutually_exclusive_group()
+    list_group.add_argument("--detailed", action="store_true", help="Show detailed port info")
+    list_group.add_argument("--csv", action="store_true", help="Output ports as CSV")
+    list_group.add_argument("--json", action="store_true", help="Output ports as JSON")
 
     p_all = sub.add_parser("all")
     p_all.add_argument("state", choices=["on", "off", "pulse"])
@@ -199,7 +238,11 @@ def main(argv=None):
 
         if c.command == "list-ports":
             ports = list_ports.comports()
-            if c.detailed:
+            if c.csv:
+                print(format_ports_csv(ports))
+            elif c.json:
+                print(format_ports_json(ports))
+            elif c.detailed:
                 print(format_ports_table(ports))
             else:
                 for p in ports:
