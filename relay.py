@@ -60,7 +60,6 @@ def _format_vid_pid(value):
 
 def port_to_dict(port):
     model = port.product or port.description
-    parent = getattr(port, "usb_device_path", None) or getattr(port, "parent", None)
     address = getattr(port, "location", None) or getattr(port, "interface", None)
     return {
         "port": port.device,
@@ -69,17 +68,15 @@ def port_to_dict(port):
         "manufacturer": port.manufacturer,
         "model": model,
         "hwid": port.hwid,
-        "parent": parent,
         "address": address,
     }
 
 
 def format_ports_table(ports):
-    headers = ["Port", "VID", "PID", "Manufacturer", "Model", "HWID", "Parent", "Address"]
+    headers = ["Port", "VID", "PID", "Manufacturer", "Model", "HWID", "Address"]
     rows = []
     for port in ports:
         model = port.product or port.description
-        parent = getattr(port, "usb_device_path", None) or getattr(port, "parent", None)
         address = getattr(port, "location", None) or getattr(port, "interface", None)
         rows.append(
             [
@@ -89,7 +86,6 @@ def format_ports_table(ports):
                 _format_port_value(port.manufacturer),
                 _format_port_value(model),
                 _format_port_value(port.hwid),
-                _format_port_value(parent),
                 _format_port_value(address),
             ]
         )
@@ -113,7 +109,7 @@ def format_ports_csv(ports):
     output = StringIO()
     writer = csv.DictWriter(
         output,
-        fieldnames=["port", "vid", "pid", "manufacturer", "model", "hwid", "parent", "address"],
+        fieldnames=["port", "vid", "pid", "manufacturer", "model", "hwid", "address"],
     )
     writer.writeheader()
     for port in ports:

@@ -22,7 +22,7 @@ python relay.py [--port PORT] [--baud BAUD] [--timeout SECONDS] <command> [comma
 
 | Command | Arguments | Description |
 | --- | --- | --- |
-| `list-ports` | `--detailed`, `--csv`, `--json` (optional) | List all detected serial ports. Use `--detailed` for a table, `--csv` for CSV, or `--json` for JSON output. |
+| `list-ports` | `--detailed`, `--csv`, `--json` (optional) | List all detected serial ports. Use `--detailed` for a table, `--csv` for CSV, or `--json` for JSON output. Detailed and structured outputs include VID/PID, manufacturer, model, HWID, and address. |
 | `all` | `state` (`on` \| `off` \| `pulse`), `--seconds` (optional; default `3.0`) | Control both relays together: turn on, turn off, or pulse for the specified number of seconds. When using `pulse`, `--seconds` defines how long the relays stay on before automatically turning off. |
 | `relay` | `number` (`1` \| `2` \| `3` \| `4` \| `5` \| `6` \| `7` \| `8`), `state` (`on` \| `off` \| `pulse`), `--seconds` (optional; default `1.0`) | Control a single relay: turn on, turn off, or pulse for the specified number of seconds. `--seconds` only applies to `pulse`. |
 | `status` | `target` (`1` \| `2` \| `3` \| `4` \| `5` \| `6` \| `7` \| `8` \| `all`), `--raw` (optional) | Query status for a single relay or all relays. `--raw` prints the raw hex response before decoding. |
