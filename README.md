@@ -4,6 +4,23 @@ Cross-platform command line relay control tool for managing USB relay boards (te
 
 ![DSTUR USB relay board](https://wiki.diustou.com/en/w/upload/0/08/USB_Relay_%28TC%2C_8%2C_Opto%29_%E4%BA%A7%E5%93%811.png)
 
+## What's included
+
+- **CLI (`relay.py`)**: Python-based command line tool for listing ports, toggling relays, and querying status.
+- **GUI (`gui/dstur-relay-gui`)**: Desktop UI built with **Tauri + HTML/CSS/JavaScript** that shells out to the `relay.exe` binary produced from the CLI.
+
+## Requirements
+
+- Python 3.8+ (for the CLI)
+- `pyserial` (see `requirements.txt`)
+- For GUI development: Node.js + npm, Rust toolchain, and the Tauri CLI
+
+## Installation
+
+```bash
+python -m pip install -r requirements.txt
+```
+
 ## Usage
 
 `relay.py` is a CLI that can list available serial ports, toggle both relays together, control an individual relay, pulse relays for a set duration, and query relay status.
@@ -109,6 +126,23 @@ Send a raw hex command and print the raw response bytes:
 ```bash
 python relay.py raw A0 0F 02 A1 --raw
 ```
+
+## GUI
+
+The GUI lives in `gui/dstur-relay-gui` and is implemented with Tauri (Rust backend) and a vanilla HTML/CSS/JS front end. The Tauri backend invokes `relay.exe` to execute the same relay commands exposed by the CLI.
+
+### Running the GUI (dev)
+
+```bash
+cd gui/dstur-relay-gui
+npm install
+npm run tauri dev
+```
+
+### Packaging notes
+
+- The Tauri app expects `relay.exe` alongside the app binary or in `src-tauri/bin/relay.exe`.
+- `relay.exe` is included in the repo (root) and mirrored in `gui/dstur-relay-gui/src-tauri/bin/`.
 
 ## Device compatibility
 
