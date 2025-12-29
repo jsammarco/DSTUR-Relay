@@ -1,6 +1,6 @@
 # DSTUR-Relay
 
-Cross-platform command line relay control tool for managing USB relay boards (tested with DSTUR-T20; also expected to work with DSTUR-T10 and up to 8-relay boards).
+Cross-platform command line relay control tool for managing USB relay boards (tested with DSTUR-T20; also expected to work with DSTUR-T10 and up to 8-relay boards). These relays use auto baud detection so 9600 and 115200 both just work. Docs recommend a baud of 115200 but 9600 works just as well and there is no noticable difference in response time either way.
 
 ![DSTUR Relay GUI](https://raw.githubusercontent.com/jsammarco/DSTUR-Relay/b4a5ef59c3c3e2f96ef43d8d93da4588ab9a1b45/gui/Screenshot%202025-12-29%20115413.jpg)
 
