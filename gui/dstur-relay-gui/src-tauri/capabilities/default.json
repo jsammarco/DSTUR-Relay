@@ -1,0 +1,17 @@
+{
+  "$schema": "https://schema.tauri.app/capabilities/2",
+  "identifier": "default",
+  "description": "Default capabilities for dstur-relay-gui",
+  "windows": ["main"],
+  "permissions": ["core:default"],
+  "allowlist": {
+    "invoke": {
+      "commands": [
+        "relay_list_ports",
+        "relay_status",
+        "relay_set",
+        "relay_all"
+      ]
+    }
+  }
+}

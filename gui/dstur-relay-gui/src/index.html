@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DSTUR Relay App by ConsultingJoe.com</title>
+  <script type="module" src="/main.js" defer></script>
+</head>
+
+<body>
+  <main class="container">
+    <header class="header">
+      <div>
+        <h1>DSTUR Relay</h1>
+        <div class="sub">by ConsultingJoe.com</div>
+      </div>
+      <div class="right">
+        <img src="/assets/cj_logo.webp" class="logo consultingjoe" alt="ConsultingJoe logo" />
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="row">
+        <label for="portSelect">Port</label>
+        <select id="portSelect"></select>
+        <button id="btnPorts">Refresh ports</button>
+        <button id="btnStatus">Refresh status</button>
+      </div>
+
+      <div class="row">
+        <fieldset class="fieldset">
+          <legend>Mode</legend>
+          <label><input type="radio" name="mode" id="modeToggle" checked> Toggle (On/Off)</label>
+          <label><input type="radio" name="mode" id="modePulse"> Pulse</label>
+        </fieldset>
+
+        <label for="pulseSeconds">Pulse seconds</label>
+        <input id="pulseSeconds" type="number" min="0.1" step="0.1" value="1.0" />
+      </div>
+
+      <div class="row">
+        <button id="btnAllOn">All ON</button>
+        <button id="btnAllOff">All OFF</button>
+        <button id="btnAllPulse">All PULSE</button>
+      </div>
+
+      <div class="grid">
+        <button class="relay" id="relay1">Relay 1</button>
+        <button class="relay" id="relay2">Relay 2</button>
+        <button class="relay" id="relay3">Relay 3</button>
+        <button class="relay" id="relay4">Relay 4</button>
+        <button class="relay" id="relay5">Relay 5</button>
+        <button class="relay" id="relay6">Relay 6</button>
+        <button class="relay" id="relay7">Relay 7</button>
+        <button class="relay" id="relay8">Relay 8</button>
+      </div>
+
+      <div id="error" class="error" role="alert"></div>
+
+      <details class="debug">
+        <summary>Diagnostics</summary>
+        <div class="debugBlock">
+          <div class="debugTitle">Last command output</div>
+          <pre id="lastCmd"></pre>
+        </div>
+        <div class="debugBlock">
+          <div class="debugTitle">Status output (raw)</div>
+          <pre id="statusRaw"></pre>
+        </div>
+        <div class="debugBlock">
+          <div class="debugTitle">Ports output (raw)</div>
+          <pre id="portsRaw"></pre>
+        </div>
+      </details>
+    </section>
+  </main>
+</body>
+</html>
