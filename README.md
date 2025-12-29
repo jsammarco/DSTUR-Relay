@@ -131,7 +131,7 @@ python relay.py raw A0 0F 02 A1 --raw
 
 ## GUI
 
-The GUI lives in `gui/dstur-relay-gui` and is implemented with Tauri (Rust backend) and a vanilla HTML/CSS/JS front end. The Tauri backend invokes `relay.exe` to execute the same relay commands exposed by the CLI.
+The GUI lives in `gui/dstur-relay-gui` and is implemented with Tauri (Rust backend) and a vanilla HTML/CSS/JS front end. The Tauri backend invokes `relay.exe` (built-in the exe) to execute the same relay commands exposed by the CLI.
 
 ### Running the GUI (dev)
 
@@ -143,7 +143,8 @@ npm run tauri dev
 
 ### Packaging notes
 
-- The Tauri app expects `relay.exe` alongside the app binary or in `src-tauri/bin/relay.exe`.
+- The Tauri app contains relay.exe in it's resources so only the gui exe is needed
+- When building with tauri, it expects `relay.exe` alongside the app binary or in `src-tauri/bin/relay.exe`.
 - `relay.exe` is included in the repo (root) and mirrored in `gui/dstur-relay-gui/src-tauri/bin/`.
 
 ## Device compatibility
