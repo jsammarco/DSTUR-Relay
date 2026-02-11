@@ -368,43 +368,117 @@ def parse_hex_bytes(tokens):
 # CLI
 # ----------------------------
 def parse_args(argv=None):
+    # Global options live here. We keep this parser so we can still accept globals
+    # in the first stage, but we ALSO attach it as a parent to the main parser so
+    # `-h/--help` shows them.
     global_parser = argparse.ArgumentParser(add_help=False)
-    global_parser.add_argument("--port")
-    global_parser.add_argument("--baud", type=int, default=DEFAULT_BAUD_RATE)
-    global_parser.add_argument("--timeout", type=float, default=1.0)
+    global_parser.add_argument(
+        "-p",
+        "--port",
+        help=(
+            "Serial port device to use (e.g. COM8 on Windows, /dev/ttyUSB0 on Linux). "
+            "If omitted, the first detected port is used (often COM1 on Windows). "
+            "Use `list-ports` to see available ports."
+        ),
+    )
+    global_parser.add_argument(
+        "--baud",
+        type=int,
+        default=DEFAULT_BAUD_RATE,
+        help=f"Baud rate (default {DEFAULT_BAUD_RATE})",
+    )
+    global_parser.add_argument(
+        "--timeout",
+        type=float,
+        default=1.0,
+        help="Serial read/write timeout in seconds (default 1.0)",
+    )
     global_parser.add_argument(
         "--channels",
         type=int,
         default=8,
         help="How many relays the board has (default 8; supports up to 32)",
     )
-    global_parser.add_argument("--debug", action="store_true", help="Print TX/RX bytes")
+    global_parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Print TX/RX bytes (hex) for troubleshooting",
+    )
 
+    # Stage 1: parse global flags wherever they appear (pre-subcommand, typically).
     globals_ns, remaining = global_parser.parse_known_args(argv)
 
-    parser = argparse.ArgumentParser(description="Universal USB Relay CLI (merged protocols)")
-    sub = parser.add_subparsers(dest="command", required=True)
+    epilog = """\
+Examples (Windows):
+  python universal_relay.py list-ports
+  python universal_relay.py -p COM8 all on
+  python universal_relay.py -p COM8 all off
+  python universal_relay.py -p COM8 relay 3 on
+  python universal_relay.py -p COM8 relay 3 pulse --seconds 1.5
+  python universal_relay.py -p COM8 status all
+  python universal_relay.py -p COM8 status 2 --raw
 
-    p_list = sub.add_parser("list-ports")
+Examples (Linux/macOS):
+  python3 universal_relay.py list-ports --detailed
+  python3 universal_relay.py --port /dev/ttyUSB0 all on
+  python3 universal_relay.py --port /dev/ttyUSB0 status all --raw
+
+Notes:
+- If --port is omitted, the program uses the first detected serial port. On Windows this
+  is often COM1, which may NOT be your relay. Run `list-ports --detailed` to confirm.
+- `all on/off` sends BOTH a broadcast command and then loops channel 1..N for maximum
+  compatibility across common CH340 relay firmwares.
+- `status` is device-dependent; some boards return ASCII like: CH1:OFFCH2:ON...
+"""
+
+    # Stage 2: build the real CLI, inheriting global options so help shows them.
+    parser = argparse.ArgumentParser(
+        description="Universal USB Relay CLI (merged protocols)",
+        parents=[global_parser],
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
+    sub = parser.add_subparsers(dest="command", required=True, metavar="COMMAND")
+
+    p_list = sub.add_parser(
+        "list-ports",
+        help="List detected serial ports (use this to find COM8, /dev/ttyUSB0, etc.)",
+    )
     list_group = p_list.add_mutually_exclusive_group()
-    list_group.add_argument("--detailed", action="store_true", help="Show detailed port info")
+    list_group.add_argument("--detailed", action="store_true", help="Show detailed port info in a table")
     list_group.add_argument("--csv", action="store_true", help="Output ports as CSV")
     list_group.add_argument("--json", action="store_true", help="Output ports as JSON")
 
-    p_all = sub.add_parser("all")
-    p_all.add_argument("state", choices=["on", "off", "pulse"])
-    p_all.add_argument("--seconds", type=float, default=3.0)
+    p_all = sub.add_parser(
+        "all",
+        help="Control all relays at once (broadcast + per-channel loop)",
+    )
+    p_all.add_argument("state", choices=["on", "off", "pulse"], help="Desired state for all relays")
+    p_all.add_argument("--seconds", type=float, default=3.0, help="Pulse duration in seconds (default 3.0)")
 
-    p_relay = sub.add_parser("relay", help="Control a single relay")
+    p_relay = sub.add_parser(
+        "relay",
+        help="Control a single relay channel",
+    )
     p_relay.add_argument("number", type=int, help="Relay number (1..N)")
-    p_relay.add_argument("state", choices=["on", "off", "pulse"])
-    p_relay.add_argument("--seconds", type=float, default=1.0)
+    p_relay.add_argument("state", choices=["on", "off", "pulse"], help="Desired relay state")
+    p_relay.add_argument("--seconds", type=float, default=1.0, help="Pulse duration in seconds (default 1.0)")
 
-    p_status = sub.add_parser("status", help="Query relay status (device-dependent)")
-    p_status.add_argument("target", help="'all' or relay number", choices=["all"] + [str(i) for i in range(1, 33)])
+    p_status = sub.add_parser(
+        "status",
+        help="Query relay status (tries multiple query variants; device-dependent)",
+    )
+    p_status.add_argument(
+        "target",
+        help="'all' or relay number",
+        choices=["all"] + [str(i) for i in range(1, 33)],
+    )
     p_status.add_argument("--raw", action="store_true", help="Print raw response hex too")
 
-    p_raw = sub.add_parser("raw", help="Send raw hex bytes and read response")
+    p_raw = sub.add_parser(
+        "raw",
+        help="Send raw hex bytes and read a response (advanced troubleshooting)",
+    )
     p_raw.add_argument("bytes", nargs="+", help="Hex bytes to send (e.g. A0 01 01 A2)")
     p_raw.add_argument("--raw", action="store_true", help="Print response as raw hex bytes")
 
